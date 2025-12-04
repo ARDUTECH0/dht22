@@ -9,7 +9,10 @@
 [![Email](https://img.shields.io/badge/Contact-Email-orange?style=for-the-badge&logo=gmail&logoColor=white)](mailto:seifemadat@gmail.com)
 
 </div>
+
 ---
+
+
 A beautiful, real-time Flutter application for monitoring temperature and humidity from an ESP32 with DHT22 sensor via WebSocket connection. Features stunning neon-themed UI with animated gauges, configurable threshold alerts, and live data visualization.
 
 ## ✨ Features
