@@ -3,8 +3,6 @@
 
 A beautiful, real-time Flutter application for monitoring temperature and humidity from an ESP32 with DHT22 sensor via WebSocket connection. Features stunning neon-themed UI with animated gauges, configurable threshold alerts, and live data visualization.
 
-Show ImageShow ImageShow Image
-
 ## ✨ Features
 
 * **Real-time Monitoring**: Live temperature and humidity readings via WebSocket
