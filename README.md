@@ -59,7 +59,7 @@ dependencies:
 bash
 
 ```bash
-git clone https://github.com/yourusername/esp32-dht22-monitor.git
+git clone git@github.com:ARDUTECH0/dht22.git
 cd esp32-dht22-monitor
 ```
 
@@ -108,6 +108,7 @@ Connect the DHT22 sensor to your ESP32:
 DHT22 Pin 1 (VCC)  →  ESP32 3.3V
 DHT22 Pin 2 (Data) →  ESP32 GPIO 4 (or your chosen pin)
 DHT22 Pin 4 (GND)  →  ESP32 GND
+RELAY Pin 2 (Data) →  ESP32 GPIO 14 (or your chosen pin)
 ```
 
 **Note**: Add a 10kΩ pull-up resistor between VCC and Data pin for stable readings.
@@ -121,76 +122,125 @@ cpp
 ```cpp
 #include <WiFi.h>
 #include <WebSocketsServer.h>
-#include <DHT.h>
 #include <ArduinoJson.h>
+#include "DHT.h"
+
 
 #define DHTPIN 4
 #define DHTTYPE DHT22
-
-const char* ssid = "YOUR_WIFI_SSID";
-const char* password = "YOUR_WIFI_PASSWORD";
-
 DHT dht(DHTPIN, DHTTYPE);
+
+#define RELAY_PIN 14
+bool relayState = false; 
+
+const char* ssid     = "YOUR_WIFI";
+const char* password = "YOUR_PASSWORD";
+
+
 WebSocketsServer webSocket = WebSocketsServer(81);
 
 float maxTemp = 30.0;
-float maxHum = 70.0;
+float maxHum  = 70.0;
 
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length) {
-  if (type == WStype_TEXT) {
-    StaticJsonDocument<200> doc;
-    deserializeJson(doc, payload);
-  
-    if (doc.containsKey("maxTemp")) {
-      maxTemp = doc["maxTemp"];
-    }
-    if (doc.containsKey("maxHum")) {
-      maxHum = doc["maxHum"];
+bool tempAlert = false;
+bool humAlert  = false;
+
+
+void handleWebSocketEvent(uint8_t client, WStype_t type, uint8_t *payload, size_t length)
+{
+  if (type == WStype_TEXT)
+  {
+    StaticJsonDocument<256> doc;
+
+    if (deserializeJson(doc, payload) == DeserializationError::Ok)
+    {
+      if (doc.containsKey("maxTemp")) maxTemp = doc["maxTemp"];
+      if (doc.containsKey("maxHum"))  maxHum  = doc["maxHum"];
+
+      if (doc.containsKey("relay"))  
+      {
+        relayState = doc["relay"];
+        digitalWrite(RELAY_PIN, relayState ? HIGH : LOW);
+      }
+
+      Serial.println("Received Control JSON.");
     }
   }
 }
 
-void setup() {
+
+void setup()
+{
   Serial.begin(115200);
   dht.begin();
-  
+
+  pinMode(RELAY_PIN, OUTPUT);
+  digitalWrite(RELAY_PIN, LOW); 
+
   WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
+  Serial.println("Connecting...");
+  while (WiFi.status() != WL_CONNECTED) 
+  {
+    delay(400);
     Serial.print(".");
   }
-  
-  Serial.println("\nWiFi Connected!");
-  Serial.print("IP Address: ");
+
+  Serial.println("\nConnected!");
+  Serial.print("IP: ");
   Serial.println(WiFi.localIP());
-  
+
   webSocket.begin();
-  webSocket.onEvent(webSocketEvent);
+  webSocket.onEvent(handleWebSocketEvent);
 }
 
-void loop() {
+
+void loop()
+{
   webSocket.loop();
-  
-  static unsigned long lastUpdate = 0;
-  if (millis() - lastUpdate > 2000) {  // Update every 2 seconds
-    lastUpdate = millis();
-  
-    float temp = dht.readTemperature();
-    float hum = dht.readHumidity();
-  
-    if (!isnan(temp) && !isnan(hum)) {
-      StaticJsonDocument<200> doc;
-      doc["temp"] = temp;
-      doc["hum"] = hum;
-      doc["temp_alert"] = (temp > maxTemp);
-      doc["hum_alert"] = (hum > maxHum);
-    
-      String json;
-      serializeJson(doc, json);
-      webSocket.broadcastTXT(json);
-    }
+
+  float t = dht.readTemperature();
+  float  h = dht.readHumidity();
+
+  if (isnan(t) || isnan(h))
+    return;
+
+  tempAlert = (t > maxTemp);
+  humAlert  = (h > maxHum);
+
+  if (tempAlert || humAlert)
+  {
+    relayState = true;  
+    digitalWrite(RELAY_PIN, HIGH);
   }
+  else
+  {
+    relayState = false;  
+    digitalWrite(RELAY_PIN, LOW);
+  }
+
+  StaticJsonDocument<256> doc;
+
+  doc["temp"] = t;
+  doc["hum"]  = h;
+
+  doc["temp_alert"] = tempAlert;
+  doc["hum_alert"]  = humAlert;
+
+  doc["relay"] = relayState;
+
+  if (tempAlert) doc["temp_msg"] = "Temperature High!";
+  if (humAlert)  doc["hum_msg"]  = "Humidity High!";
+
+  String jsonString;
+  serializeJson(doc, jsonString);
+
+  webSocket.broadcastTXT(jsonString);
+
+  Serial.println(jsonString);
+
+  delay(1000);
 }
+
 ```
 
 ### Required Arduino Libraries
