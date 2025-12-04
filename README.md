@@ -1,4 +1,3 @@
-# dht22
 
 # ESP32 DHT22 Monitor 🌡️💧
 
