@@ -108,7 +108,7 @@ Connect the DHT22 sensor to your ESP32:
 DHT22 Pin 1 (VCC)  →  ESP32 3.3V
 DHT22 Pin 2 (Data) →  ESP32 GPIO 4 (or your chosen pin)
 DHT22 Pin 4 (GND)  →  ESP32 GND
-RELAY Pin 2 (Data) →  ESP32 GPIO 14 (or your chosen pin)
+RELAY Pin 5 (Data) →  ESP32 GPIO 14 (or your chosen pin)
 ```
 
 **Note**: Add a 10kΩ pull-up resistor between VCC and Data pin for stable readings.
