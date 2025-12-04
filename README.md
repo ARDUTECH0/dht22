@@ -1,6 +1,16 @@
 
 # ESP32 DHT22 Monitor 🌡️💧
+---
+## 🌐 Connect with Ardu Tech
 
+<div align="center">
+
+[![YouTube](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@ArduTechs)
+[![TikTok](https://img.shields.io/badge/TikTok-000000?style=for-the-badge&logo=tiktok&logoColor=white)](https://www.tiktok.com/@ardutechse)
+[![Email](https://img.shields.io/badge/Contact-Email-orange?style=for-the-badge&logo=gmail&logoColor=white)](mailto:seifemadat@gmail.com)
+
+</div>
+----
 A beautiful, real-time Flutter application for monitoring temperature and humidity from an ESP32 with DHT22 sensor via WebSocket connection. Features stunning neon-themed UI with animated gauges, configurable threshold alerts, and live data visualization.
 
 ## ✨ Features
